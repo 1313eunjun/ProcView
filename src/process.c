@@ -58,6 +58,30 @@ int get_process_list(ProcessInfo processes[], int max_processes)
         ] = '\0';
 
         processes[count].pid = pid;
+        processes[count].memory_kb = 0;
+
+        snprintf(path,
+                 sizeof(path),
+                 "/proc/%d/status",
+                 pid);
+
+        file = fopen(path, "r");
+
+        if (file != NULL) {
+
+            char line[256];
+
+            while (fgets(line, sizeof(line), file)) {
+
+                if (sscanf(line,
+                           "VmRSS: %ld kB",
+                           &processes[count].memory_kb) == 1) {
+                    break;
+                }
+            }
+
+            fclose(file);
+        }
 
         count++;
     }

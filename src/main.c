@@ -39,12 +39,20 @@ int main(void)
            used_gb,
            total_gb);
 
-    printf("%-8s %-25s\n", "PID", "PROCESS");
+    printf("%-8s %-25s %10s\n",
+           "PID",
+           "PROCESS",
+           "MEMORY");
 
     for (int i = 0; i < process_count; i++) {
-        printf("%-8d %-25s\n",
+
+        double memory_mb =
+            processes[i].memory_kb / 1024.0;
+
+        printf("%-8d %-25s %9.1f MB\n",
                processes[i].pid,
-               processes[i].name);
+               processes[i].name,
+               memory_mb);
     }
 
     return 0;
