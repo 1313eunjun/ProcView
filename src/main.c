@@ -31,6 +31,8 @@ int main(void)
     int process_count =
         get_process_list(processes, MAX_PROCESSES);
 
+    sort_processes_by_memory(processes, process_count);
+
     printf("ProcView - Linux System Monitor\n\n");
 
     printf("CPU Usage: %.1f%%\n", cpu_usage);
@@ -44,7 +46,9 @@ int main(void)
            "PROCESS",
            "MEMORY");
 
-    for (int i = 0; i < process_count; i++) {
+    int display_count = process_count < 10 ? process_count : 10;
+
+    for (int i = 0; i < display_count; i++) {
 
         double memory_mb =
             processes[i].memory_kb / 1024.0;

@@ -90,3 +90,26 @@ int get_process_list(ProcessInfo processes[], int max_processes)
 
     return count;
 }
+static int compare_memory(const void *a, const void *b)
+{
+    const ProcessInfo *process_a = a;
+    const ProcessInfo *process_b = b;
+
+    if (process_a->memory_kb < process_b->memory_kb) {
+        return 1;
+    }
+
+    if (process_a->memory_kb > process_b->memory_kb) {
+        return -1;
+    }
+
+    return 0;
+}
+
+void sort_processes_by_memory(ProcessInfo processes[], int count)
+{
+    qsort(processes,
+          count,
+          sizeof(ProcessInfo),
+          compare_memory);
+}
