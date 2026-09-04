@@ -1,19 +1,35 @@
 #include <stdio.h>
+#include <unistd.h>
 
 #include "memory.h"
+#include "cpu.h"
 
 int main(void)
 {
-	MemoryInfo memory = get_memory_info();
+    CpuTimes first_cpu = get_cpu_times();
 
-	double total_gb = memory.total_kb / 1024.0 / 1024.0;
-	double used_gb = memory.used_kb / 1024.0 / 1024.0;
+    sleep(1);
 
-	printf("ProcView - Linux System Monitor\n\n");
+    CpuTimes second_cpu = get_cpu_times();
 
-	printf("Memory Usage: %.2f GB / %.2f GB\n",
-		used_gb,
-		total_gb);
+    double cpu_usage =
+        calculate_cpu_usage(first_cpu, second_cpu);
 
-	return 0;
+    MemoryInfo memory = get_memory_info();
+
+    double total_gb =
+        memory.total_kb / 1024.0 / 1024.0;
+
+    double used_gb =
+        memory.used_kb / 1024.0 / 1024.0;
+
+    printf("ProcView - Linux System Monitor\n\n");
+
+    printf("CPU Usage: %.1f%%\n", cpu_usage);
+
+    printf("Memory Usage: %.2f GB / %.2f GB\n",
+           used_gb,
+           total_gb);
+
+    return 0;
 }
