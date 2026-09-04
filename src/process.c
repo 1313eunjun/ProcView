@@ -28,7 +28,36 @@ int get_process_list(ProcessInfo processes[], int max_processes)
             break;
         }
 
-        processes[count].pid = atoi(entry->d_name);
+        int pid = atoi(entry->d_name);
+
+        char path[256];
+
+        snprintf(path,
+                 sizeof(path),
+                 "/proc/%d/comm",
+                 pid);
+
+        FILE *file = fopen(path, "r");
+
+        if (file == NULL) {
+            continue;
+        }
+
+        if (fgets(processes[count].name,
+                  sizeof(processes[count].name),
+                  file) == NULL) {
+
+            fclose(file);
+            continue;
+        }
+
+        fclose(file);
+
+        processes[count].name[
+            strcspn(processes[count].name, "\n")
+        ] = '\0';
+
+        processes[count].pid = pid;
 
         count++;
     }

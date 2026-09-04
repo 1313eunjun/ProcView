@@ -5,7 +5,8 @@ TARGET = procview
 
 SRC = src/main.c \
       src/memory.c \
-      src/cpu.c
+      src/cpu.c \
+      src/process.c
 
 all:
 	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
