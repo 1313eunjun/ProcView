@@ -16,4 +16,6 @@ CpuTimes get_cpu_times(void);
 
 double calculate_cpu_usage(CpuTimes first, CpuTimes second);
 
+unsigned long long get_total_cpu_time(CpuTimes times);
+
 #endif

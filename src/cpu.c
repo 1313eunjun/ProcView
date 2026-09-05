@@ -29,6 +29,7 @@ CpuTimes get_cpu_times(void)
     return times;
 }
 
+
 double calculate_cpu_usage(CpuTimes first, CpuTimes second)
 {
     unsigned long long first_idle =
@@ -68,4 +69,17 @@ double calculate_cpu_usage(CpuTimes first, CpuTimes second)
     }
 
     return 100.0 * (total_diff - idle_diff) / total_diff;
+}
+
+
+unsigned long long get_total_cpu_time(CpuTimes times)
+{
+    return times.user +
+           times.nice +
+           times.system +
+           times.idle +
+           times.iowait +
+           times.irq +
+           times.softirq +
+           times.steal;
 }
