@@ -253,3 +253,27 @@ void calculate_process_cpu_usage(
         }
     }
 }
+
+static int compare_cpu(const void *a, const void *b)
+{
+    const ProcessInfo *process_a = a;
+    const ProcessInfo *process_b = b;
+
+    if (process_a->cpu_usage < process_b->cpu_usage) {
+        return 1;
+    }
+
+    if (process_a->cpu_usage > process_b->cpu_usage) {
+        return -1;
+    }
+
+    return 0;
+}
+
+void sort_processes_by_cpu(ProcessInfo processes[], int count)
+{
+    qsort(processes,
+          count,
+          sizeof(ProcessInfo),
+          compare_cpu);
+}

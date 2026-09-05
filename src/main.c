@@ -10,22 +10,49 @@
 
 int main(int argc, char *argv[])
 {
-    int sort_by_memory = 1;
+    /*
+     * sort_mode:
+     * 0 = sort by memory
+     * 1 = sort by CPU
+     */
+    int sort_mode = 0;
 
+    /*
+     * Handle --help
+     */
     if (argc == 2 && strcmp(argv[1], "--help") == 0) {
+
         printf("Usage: ./procview [options]\n\n");
+
         printf("Options:\n");
         printf("  --sort memory   Sort processes by memory usage\n");
+        printf("  --sort cpu      Sort processes by CPU usage\n");
         printf("  --help          Show this help message\n");
 
         return 0;
     }
 
-    if (argc == 3 &&
-        strcmp(argv[1], "--sort") == 0 &&
-        strcmp(argv[2], "memory") == 0) {
+    /*
+     * Handle --sort memory
+     * and --sort cpu
+     */
+    if (argc == 3 && strcmp(argv[1], "--sort") == 0) {
 
-        sort_by_memory = 1;
+        if (strcmp(argv[2], "memory") == 0) {
+
+            sort_mode = 0;
+
+        } else if (strcmp(argv[2], "cpu") == 0) {
+
+            sort_mode = 1;
+
+        } else {
+
+            printf("Invalid sort option: %s\n", argv[2]);
+            printf("Use ./procview --help for usage information.\n");
+
+            return 1;
+        }
 
     } else if (argc != 1) {
 
@@ -36,7 +63,7 @@ int main(int argc, char *argv[])
     }
 
     /*
-     * First CPU measurement
+     * First overall CPU measurement
      */
     CpuTimes first_cpu = get_cpu_times();
 
@@ -49,13 +76,15 @@ int main(int argc, char *argv[])
         get_process_list(first_processes, MAX_PROCESSES);
 
     /*
-     * Wait one second so CPU usage can be measured
+     * Wait one second.
+     *
+     * CPU usage requires two measurements
      * over a time interval.
      */
     sleep(1);
 
     /*
-     * Second CPU measurement
+     * Second overall CPU measurement
      */
     CpuTimes second_cpu = get_cpu_times();
 
@@ -68,14 +97,14 @@ int main(int argc, char *argv[])
         get_process_list(processes, MAX_PROCESSES);
 
     /*
-     * Overall CPU usage
+     * Calculate overall CPU usage.
      */
     double cpu_usage =
         calculate_cpu_usage(first_cpu, second_cpu);
 
     /*
-     * Calculate how much total CPU time increased
-     * during the one-second interval.
+     * Find how much total CPU time increased
+     * during the measurement interval.
      */
     unsigned long long first_total_cpu =
         get_total_cpu_time(first_cpu);
@@ -109,26 +138,47 @@ int main(int argc, char *argv[])
         memory.used_kb / 1024.0 / 1024.0;
 
     /*
-     * For now, memory is still the default sort mode.
+     * Sort processes based on selected mode.
      */
-    if (sort_by_memory) {
-        sort_processes_by_memory(processes, process_count);
+    if (sort_mode == 0) {
+
+        sort_processes_by_memory(
+            processes,
+            process_count
+        );
+
+    } else if (sort_mode == 1) {
+
+        sort_processes_by_cpu(
+            processes,
+            process_count
+        );
     }
 
+    /*
+     * Print system information.
+     */
     printf("ProcView - Linux System Monitor\n\n");
 
-    printf("CPU Usage: %.1f%%\n", cpu_usage);
+    printf("CPU Usage: %.1f%%\n",
+           cpu_usage);
 
     printf("Memory Usage: %.2f GB / %.2f GB\n\n",
            used_gb,
            total_gb);
 
+    /*
+     * Print process table header.
+     */
     printf("%-8s %-25s %8s %10s\n",
            "PID",
            "PROCESS",
            "CPU",
            "MEMORY");
 
+    /*
+     * Show only the top 10 processes.
+     */
     int display_count =
         process_count < 10 ? process_count : 10;
 
@@ -140,7 +190,7 @@ int main(int argc, char *argv[])
         printf("%-8d %-25s %7.1f%% %9.1f MB\n",
                processes[i].pid,
                processes[i].name,
-	       processes[i].cpu_usage,
+               processes[i].cpu_usage,
                memory_mb);
     }
 

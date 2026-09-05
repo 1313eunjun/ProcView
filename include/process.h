@@ -12,6 +12,7 @@ typedef struct {
 int get_process_list(ProcessInfo processes[], int max_processes);
 
 void sort_processes_by_memory(ProcessInfo processes[], int count);
+void sort_processes_by_cpu(ProcessInfo processes[], int count);
 
 void calculate_process_cpu_usage(
     ProcessInfo first[],
