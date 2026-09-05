@@ -123,9 +123,10 @@ int main(int argc, char *argv[])
            used_gb,
            total_gb);
 
-    printf("%-8s %-25s %10s\n",
+    printf("%-8s %-25s %8s %10s\n",
            "PID",
            "PROCESS",
+           "CPU",
            "MEMORY");
 
     int display_count =
@@ -136,9 +137,10 @@ int main(int argc, char *argv[])
         double memory_mb =
             processes[i].memory_kb / 1024.0;
 
-        printf("%-8d %-25s %9.1f MB\n",
+        printf("%-8d %-25s %7.1f%% %9.1f MB\n",
                processes[i].pid,
                processes[i].name,
+	       processes[i].cpu_usage,
                memory_mb);
     }
 
