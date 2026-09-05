@@ -19,80 +19,113 @@ int main(int argc, char *argv[])
     int sort_mode = 0;
 
     /*
-     * Default refresh interval in seconds.
+     * Default refresh interval.
      */
     int refresh_interval = 2;
 
     /*
-     * Handle --help
+     * Read command-line arguments one by one.
      */
-    if (argc == 2 && strcmp(argv[1], "--help") == 0) {
+    for (int i = 1; i < argc; i++) {
 
-        printf("Usage: ./procview [options]\n\n");
+        /*
+         * --help
+         */
+        if (strcmp(argv[i], "--help") == 0) {
 
-        printf("Options:\n");
-        printf("  --sort memory   Sort processes by memory usage\n");
-        printf("  --sort cpu      Sort processes by CPU usage\n");
-        printf("  --interval N    Refresh every N seconds\n");
-        printf("  --help          Show this help message\n");
+            printf("Usage: ./procview [options]\n\n");
 
-        return 0;
-    }
+            printf("Options:\n");
+            printf("  --sort memory   Sort processes by memory usage\n");
+            printf("  --sort cpu      Sort processes by CPU usage\n");
+            printf("  --interval N    Refresh every N seconds\n");
+            printf("  --help          Show this help message\n");
 
-    /*
-     * Handle --sort memory
-     * and --sort cpu
-     */
-    if (argc == 3 && strcmp(argv[1], "--sort") == 0) {
+            return 0;
+        }
 
-        if (strcmp(argv[2], "memory") == 0) {
+        /*
+         * --sort memory
+         * --sort cpu
+         */
+        else if (strcmp(argv[i], "--sort") == 0) {
 
-            sort_mode = 0;
+            /*
+             * Make sure a value exists after --sort.
+             */
+            if (i + 1 >= argc) {
+                printf("Missing value after --sort.\n");
+                return 1;
+            }
 
-        } else if (strcmp(argv[2], "cpu") == 0) {
+            /*
+             * Move to the value after --sort.
+             */
+            i++;
 
-            sort_mode = 1;
+            if (strcmp(argv[i], "memory") == 0) {
 
-        } else {
+                sort_mode = 0;
 
-            printf("Invalid sort option: %s\n", argv[2]);
+            } else if (strcmp(argv[i], "cpu") == 0) {
+
+                sort_mode = 1;
+
+            } else {
+
+                printf("Invalid sort option: %s\n", argv[i]);
+                return 1;
+            }
+        }
+
+        /*
+         * --interval N
+         */
+        else if (strcmp(argv[i], "--interval") == 0) {
+
+            /*
+             * Make sure a value exists after --interval.
+             */
+            if (i + 1 >= argc) {
+                printf("Missing value after --interval.\n");
+                return 1;
+            }
+
+            /*
+             * Move to the interval value.
+             */
+            i++;
+
+            refresh_interval = atoi(argv[i]);
+
+            if (refresh_interval <= 0) {
+                printf("Interval must be greater than 0.\n");
+                return 1;
+            }
+        }
+
+        /*
+         * Anything else is invalid.
+         */
+        else {
+
+            printf("Invalid option: %s\n", argv[i]);
             printf("Use ./procview --help for usage information.\n");
 
             return 1;
         }
-
-    /*
-     * Handle --interval N
-     */
-    } else if (argc == 3 &&
-               strcmp(argv[1], "--interval") == 0) {
-
-        refresh_interval = atoi(argv[2]);
-
-        if (refresh_interval <= 0) {
-
-            printf("Interval must be greater than 0.\n");
-
-            return 1;
-        }
-
-    } else if (argc != 1) {
-
-        printf("Invalid option.\n");
-        printf("Use ./procview --help for usage information.\n");
-
-        return 1;
     }
 
     /*
-     * Keep monitoring until Ctrl + C is pressed.
+     * Keep monitoring until Ctrl + C.
      */
     while (1) {
 
         /*
          * First overall CPU measurement.
          */
-        CpuTimes first_cpu = get_cpu_times();
+        CpuTimes first_cpu =
+            get_cpu_times();
 
         /*
          * First process measurement.
@@ -106,14 +139,16 @@ int main(int argc, char *argv[])
             );
 
         /*
-         * Wait one second so CPU usage can be measured.
+         * Wait one second so CPU usage
+         * can be measured.
          */
         sleep(1);
 
         /*
          * Second overall CPU measurement.
          */
-        CpuTimes second_cpu = get_cpu_times();
+        CpuTimes second_cpu =
+            get_cpu_times();
 
         /*
          * Second process measurement.
@@ -127,7 +162,7 @@ int main(int argc, char *argv[])
             );
 
         /*
-         * Calculate overall CPU usage.
+         * Overall CPU usage.
          */
         double cpu_usage =
             calculate_cpu_usage(
@@ -136,7 +171,7 @@ int main(int argc, char *argv[])
             );
 
         /*
-         * Calculate total CPU time difference.
+         * Total CPU time difference.
          */
         unsigned long long first_total_cpu =
             get_total_cpu_time(first_cpu);
@@ -159,7 +194,7 @@ int main(int argc, char *argv[])
         );
 
         /*
-         * Read overall memory information.
+         * Read memory information.
          */
         MemoryInfo memory =
             get_memory_info();
@@ -171,7 +206,7 @@ int main(int argc, char *argv[])
             memory.used_kb / 1024.0 / 1024.0;
 
         /*
-         * Sort process list.
+         * Sort processes.
          */
         if (sort_mode == 0) {
 
@@ -189,13 +224,12 @@ int main(int argc, char *argv[])
         }
 
         /*
-         * Clear terminal and move cursor
-         * to the top-left.
+         * Clear terminal screen.
          */
         printf("\033[2J\033[H");
 
         /*
-         * Print system summary.
+         * System information.
          */
         printf("ProcView - Linux System Monitor\n\n");
 
@@ -210,7 +244,7 @@ int main(int argc, char *argv[])
                refresh_interval);
 
         /*
-         * Print process table header.
+         * Process table header.
          */
         printf("%-8s %-25s %8s %10s\n",
                "PID",
@@ -219,7 +253,7 @@ int main(int argc, char *argv[])
                "MEMORY");
 
         /*
-         * Show only the top 10 processes.
+         * Display top 10 processes.
          */
         int display_count =
             process_count < 10
@@ -241,16 +275,17 @@ int main(int argc, char *argv[])
         }
 
         /*
-         * Immediately display buffered output.
+         * Display output immediately.
          */
         fflush(stdout);
 
         /*
-         * Wait before next refresh cycle.
+         * CPU measurement already takes about 1 second,
+         * so wait only the remaining interval.
          */
-        if(refresh_interval > 1) {
-		sleep(refresh_interval - 1);
-	}
+        if (refresh_interval > 1) {
+            sleep(refresh_interval - 1);
+        }
     }
 
     return 0;
