@@ -77,8 +77,9 @@ Remove the compiled executable:
 make clean
 ```
 
-Example Output
+## Example Output
 
+```text
 ProcView - Linux System Monitor
 
 CPU Usage: 2.5%
@@ -91,9 +92,11 @@ PID      PROCESS                       CPU     MEMORY
 2805     gsd-xsettings                 0.0%      81.0 MB
 2667     Xwayland                      0.0%      68.8 MB
 2806     gjs                           0.0%      59.7 MB
+```
 
-Project Structure
+## Project Structure
 
+```
 ProcView/
 ├── include/
 │   ├── cpu.h
@@ -108,8 +111,9 @@ ProcView/
 ├── Makefile
 ├── README.md
 └── LICENSE
+```
 
-How It Works
+## How It Works
 
 ProcView reads system information directly from the Linux /proc virtual filesystem.
 
@@ -123,7 +127,7 @@ CPU usage values are cumulative in Linux, so ProcView takes two measurements ove
 
 For per-process monitoring, ProcView matches processes between measurements using their PID and calculates CPU usage from the change in user and system CPU time.
 
-Command-Line Options
+## Command-Line Options
 
 | Option          | Description                           |
 | --------------- | ------------------------------------- |
@@ -138,15 +142,15 @@ Options can be combined:
 ./procview --sort cpu --interval 5
 ```
 
-Technologies
+## Technologies
 
-C
-Linux
-/proc virtual filesystem
-GCC
-Make
-Git
+- C
+- Linux
+- `/proc` virtual filesystem
+- GCC
+- Make
+- Git
 
-License 
+## License 
 
 This project is licensed under the MIT License.
