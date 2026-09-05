@@ -76,6 +76,9 @@ Remove the compiled executable:
 ```bash
 make clean
 ```
+## Screenshot
+
+![ProcView screenshot](screenshots/procview.png)
 
 ## Example Output
 
