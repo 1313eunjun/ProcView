@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -18,6 +19,11 @@ int main(int argc, char *argv[])
     int sort_mode = 0;
 
     /*
+     * Default refresh interval in seconds.
+     */
+    int refresh_interval = 2;
+
+    /*
      * Handle --help
      */
     if (argc == 2 && strcmp(argv[1], "--help") == 0) {
@@ -27,6 +33,7 @@ int main(int argc, char *argv[])
         printf("Options:\n");
         printf("  --sort memory   Sort processes by memory usage\n");
         printf("  --sort cpu      Sort processes by CPU usage\n");
+        printf("  --interval N    Refresh every N seconds\n");
         printf("  --help          Show this help message\n");
 
         return 0;
@@ -54,6 +61,21 @@ int main(int argc, char *argv[])
             return 1;
         }
 
+    /*
+     * Handle --interval N
+     */
+    } else if (argc == 3 &&
+               strcmp(argv[1], "--interval") == 0) {
+
+        refresh_interval = atoi(argv[2]);
+
+        if (refresh_interval <= 0) {
+
+            printf("Interval must be greater than 0.\n");
+
+            return 1;
+        }
+
     } else if (argc != 1) {
 
         printf("Invalid option.\n");
@@ -63,135 +85,172 @@ int main(int argc, char *argv[])
     }
 
     /*
-     * First overall CPU measurement
+     * Keep monitoring until Ctrl + C is pressed.
      */
-    CpuTimes first_cpu = get_cpu_times();
+    while (1) {
 
-    /*
-     * First process measurement
-     */
-    ProcessInfo first_processes[MAX_PROCESSES];
+        /*
+         * First overall CPU measurement.
+         */
+        CpuTimes first_cpu = get_cpu_times();
 
-    int first_process_count =
-        get_process_list(first_processes, MAX_PROCESSES);
+        /*
+         * First process measurement.
+         */
+        ProcessInfo first_processes[MAX_PROCESSES];
 
-    /*
-     * Wait one second.
-     *
-     * CPU usage requires two measurements
-     * over a time interval.
-     */
-    sleep(1);
+        int first_process_count =
+            get_process_list(
+                first_processes,
+                MAX_PROCESSES
+            );
 
-    /*
-     * Second overall CPU measurement
-     */
-    CpuTimes second_cpu = get_cpu_times();
+        /*
+         * Wait one second so CPU usage can be measured.
+         */
+        sleep(1);
 
-    /*
-     * Second process measurement
-     */
-    ProcessInfo processes[MAX_PROCESSES];
+        /*
+         * Second overall CPU measurement.
+         */
+        CpuTimes second_cpu = get_cpu_times();
 
-    int process_count =
-        get_process_list(processes, MAX_PROCESSES);
+        /*
+         * Second process measurement.
+         */
+        ProcessInfo processes[MAX_PROCESSES];
 
-    /*
-     * Calculate overall CPU usage.
-     */
-    double cpu_usage =
-        calculate_cpu_usage(first_cpu, second_cpu);
+        int process_count =
+            get_process_list(
+                processes,
+                MAX_PROCESSES
+            );
 
-    /*
-     * Find how much total CPU time increased
-     * during the measurement interval.
-     */
-    unsigned long long first_total_cpu =
-        get_total_cpu_time(first_cpu);
+        /*
+         * Calculate overall CPU usage.
+         */
+        double cpu_usage =
+            calculate_cpu_usage(
+                first_cpu,
+                second_cpu
+            );
 
-    unsigned long long second_total_cpu =
-        get_total_cpu_time(second_cpu);
+        /*
+         * Calculate total CPU time difference.
+         */
+        unsigned long long first_total_cpu =
+            get_total_cpu_time(first_cpu);
 
-    unsigned long long total_cpu_diff =
-        second_total_cpu - first_total_cpu;
+        unsigned long long second_total_cpu =
+            get_total_cpu_time(second_cpu);
 
-    /*
-     * Calculate CPU usage for each process.
-     */
-    calculate_process_cpu_usage(
-        first_processes,
-        first_process_count,
-        processes,
-        process_count,
-        total_cpu_diff
-    );
+        unsigned long long total_cpu_diff =
+            second_total_cpu - first_total_cpu;
 
-    /*
-     * Read overall memory information.
-     */
-    MemoryInfo memory = get_memory_info();
-
-    double total_gb =
-        memory.total_kb / 1024.0 / 1024.0;
-
-    double used_gb =
-        memory.used_kb / 1024.0 / 1024.0;
-
-    /*
-     * Sort processes based on selected mode.
-     */
-    if (sort_mode == 0) {
-
-        sort_processes_by_memory(
+        /*
+         * Calculate per-process CPU usage.
+         */
+        calculate_process_cpu_usage(
+            first_processes,
+            first_process_count,
             processes,
-            process_count
+            process_count,
+            total_cpu_diff
         );
 
-    } else if (sort_mode == 1) {
+        /*
+         * Read overall memory information.
+         */
+        MemoryInfo memory =
+            get_memory_info();
 
-        sort_processes_by_cpu(
-            processes,
-            process_count
-        );
-    }
+        double total_gb =
+            memory.total_kb / 1024.0 / 1024.0;
 
-    /*
-     * Print system information.
-     */
-    printf("ProcView - Linux System Monitor\n\n");
+        double used_gb =
+            memory.used_kb / 1024.0 / 1024.0;
 
-    printf("CPU Usage: %.1f%%\n",
-           cpu_usage);
+        /*
+         * Sort process list.
+         */
+        if (sort_mode == 0) {
 
-    printf("Memory Usage: %.2f GB / %.2f GB\n\n",
-           used_gb,
-           total_gb);
+            sort_processes_by_memory(
+                processes,
+                process_count
+            );
 
-    /*
-     * Print process table header.
-     */
-    printf("%-8s %-25s %8s %10s\n",
-           "PID",
-           "PROCESS",
-           "CPU",
-           "MEMORY");
+        } else {
 
-    /*
-     * Show only the top 10 processes.
-     */
-    int display_count =
-        process_count < 10 ? process_count : 10;
+            sort_processes_by_cpu(
+                processes,
+                process_count
+            );
+        }
 
-    for (int i = 0; i < display_count; i++) {
+        /*
+         * Clear terminal and move cursor
+         * to the top-left.
+         */
+        printf("\033[2J\033[H");
 
-        double memory_mb =
-            processes[i].memory_kb / 1024.0;
+        /*
+         * Print system summary.
+         */
+        printf("ProcView - Linux System Monitor\n\n");
 
-        printf("%-8d %-25s %7.1f%% %9.1f MB\n",
-               processes[i].pid,
-               processes[i].name,
-               processes[i].cpu_usage,
-               memory_mb);
+        printf("CPU Usage: %.1f%%\n",
+               cpu_usage);
+
+        printf("Memory Usage: %.2f GB / %.2f GB\n",
+               used_gb,
+               total_gb);
+
+        printf("Refresh Interval: %d seconds\n\n",
+               refresh_interval);
+
+        /*
+         * Print process table header.
+         */
+        printf("%-8s %-25s %8s %10s\n",
+               "PID",
+               "PROCESS",
+               "CPU",
+               "MEMORY");
+
+        /*
+         * Show only the top 10 processes.
+         */
+        int display_count =
+            process_count < 10
+            ? process_count
+            : 10;
+
+        for (int i = 0;
+             i < display_count;
+             i++) {
+
+            double memory_mb =
+                processes[i].memory_kb / 1024.0;
+
+            printf("%-8d %-25s %7.1f%% %9.1f MB\n",
+                   processes[i].pid,
+                   processes[i].name,
+                   processes[i].cpu_usage,
+                   memory_mb);
+        }
+
+        /*
+         * Immediately display buffered output.
+         */
+        fflush(stdout);
+
+        /*
+         * Wait before next refresh cycle.
+         */
+        if(refresh_interval > 1) {
+		sleep(refresh_interval - 1);
+	}
     }
 
     return 0;
