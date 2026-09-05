@@ -22,40 +22,40 @@ Run with default settings:
 
 ```bash
 ./procview
-'''
+```
 Sort by memory usage:
 
-'''bash
+```bash
 ./procview --sort memory 
-'''
+```
 Sort by CPU usage:
 
-'''bash
+```bash
 ./procview --sort cpu
-'''
+```
 Set the refresh interval:
 
-'''bash
+```bash
 ./procview --interval 5
-'''
+```
 
 Combine multiple options:
 
-'''bash
+```bash
 ./procview --sort cpu --interval 5
-'''
+```
 
 Show help:
 
-'''bash
+```bash
 ./procview --help
-'''
+```
 
 Stop the monitor with:
 
-'''text
+```text
 Ctrl + C
-'''
+```
 
 ## Build
 
@@ -63,19 +63,19 @@ Compile the project with:
 
 ```bash
 make
-'''
+```
 
 Run ProcView:
 
-'''bash
+```bash
 ./procview 
-'''
+```
 
 Remove the compiled executable:
 
-'''bash
+```bash
 make clean
-'''
+```
 
 Example Output
 
@@ -134,8 +134,9 @@ Command-Line Options
 
 Options can be combined:
 
-'''bash
+```bash
 ./procview --sort cpu --interval 5
+```
 
 Technologies
 
